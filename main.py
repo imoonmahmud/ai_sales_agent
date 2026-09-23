@@ -2,6 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 from groq import Groq
+from database import add_lead
 
 load_dotenv()
 
@@ -43,6 +44,14 @@ def run_agent(goal):
         if company_info is None:
             print("Agent: I don't have company info yet. Searching...")
             company_info = search_company(goal)
+            add_lead(
+                company_info['name'],
+                company_info['industry'],
+                company_info['employees'],
+                company_info['website'],
+                'agent_search',
+                None
+            )
             print(f"Agent: Got it -> {company_info}")
         else:
             print("Agent: I have enough info. Summarizing...")
@@ -116,4 +125,4 @@ def ask_llm_with_tools(prompt):
 
 
 if __name__ == '__main__':
-    ask_llm_with_tools('Look up information on Google')
+    run_agent('Google')
