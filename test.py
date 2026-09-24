@@ -1,9 +1,9 @@
-from main import search_company, extract_fileds
+from main import search_company, extract_fields, qualify_lead
 seed_list = [
     "Microsoft",
-    "Tesla",
+    "Tesla, Inc.",
     "Netflix",
-    "Nike",
+    "Nike, Inc.",
     "Spotify",
     "Zoom (software)",
     "Etsy"
@@ -12,12 +12,18 @@ seed_list = [
 for name in seed_list:
     result = search_company(name)
     if result:
-        fields = extract_fileds(result['summary'])
+        fields = extract_fields(result['summary'])
         print(f"--- {name} ---")
         print(f"Summary: {result['summary'][:150]}...")
         print(f"Extracted: {fields}")
+        leads = qualify_lead(fields)
+        print(leads)
+        # print(f"Score: {leads['score']}")
+        # print(f"Status: {leads['status']}")
+        # print(f"Reseans: {leads['reasons']}")
     else:
         print(f"--- {name}: no data found ---\n")
+
 
 
 

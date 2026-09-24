@@ -59,7 +59,7 @@ def search_company(name):
         print(f"Network error: {e}")
         return None
 
-def extract_fileds(summary_text):
+def extract_fields(summary_text):
     prompt = f"""Extract the following fields from this text.
     If a field is not explicitly mentioned in the text, respond with "unknown" 
     for that field. Do not guess or use outside knowledge.
@@ -74,7 +74,56 @@ def extract_fileds(summary_text):
     employee_count: ...
     founded_year: ..."""
 
-    return ask_llm(prompt)
+    response_text = ask_llm(prompt)
+
+    fields = {}
+    for line in response_text.strip().split('\n'):
+        if ':' in line:
+            key, value = line.split(':', 1)
+            fields[key.strip()] = value.strip()
+
+    return fields
+
+
+def qualify_lead(company_data,  target_keywords = ["technology", "software", "tech", "internet", "cloud"], max_employee=500):
+    score = 0
+    reasons = []
+
+    # industry match
+    industry = company_data.get('industry', 'unknown')
+    if industry != 'unknown' and any(kw in industry.lower() for kw in target_keywords):
+        score += 30
+        reasons.append(f"Industry match: {industry} (+30)")
+    else:
+        reasons.append(f"Industry did not match target '{target_keywords}' (+0)")
+
+    # company size
+    employee_count = company_data.get('employee_count', 'unknown')
+    if employee_count != 'unknown':
+        try:
+            count = int(str(employee_count).replace(',', ''))
+            if count <= max_employee:
+                score += 20
+                reasons.append(f"Employee count {count} within target range (+20)")
+            else:
+                reasons.append(f"Employee count '{employee_count}' exceeds target range (+0)")
+        except ValueError:
+            reasons.append("Employee count unknown (+0)")
+    else:
+        reasons.append("Employee count unknown (+0)")
+
+    status = 'qualified' if score >= 30 else 'unqualified'
+
+
+    ## add more rules to identify the better lead
+
+    return {
+        'score': score,
+        'status': status,
+        'reasons': reasons
+        }
+
+
 
 def run_agent(goal):
     company_info = None
