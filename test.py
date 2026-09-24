@@ -1,4 +1,6 @@
-from main import search_company, extract_fields, qualify_lead
+from research import search_company, extract_fields
+from qualification import qualify_lead
+
 seed_list = [
     "Microsoft",
     "Tesla, Inc.",
