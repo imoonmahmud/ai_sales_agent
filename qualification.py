@@ -1,4 +1,4 @@
-def qualify_lead(company_data,  target_keywords=None, max_employee=500):
+def qualify_lead(company_data,  target_keywords=None, max_employee=500, min_employee=25):
     if target_keywords is None:
         target_keywords = ["technology", "software", "tech", "internet", "cloud"]
 
@@ -16,11 +16,13 @@ def qualify_lead(company_data,  target_keywords=None, max_employee=500):
     if employee_count != 'unknown':
         try:
             count = int(str(employee_count).replace(',', ''))
-            if count <= max_employee:
+            if count <= max_employee and count >= min_employee:
                 score += 20
                 reasons.append(f"Employee count {count} within target range (+20)")
+            elif count > max_employee:
+                reasons.append(f"Employee count {count} exceeds maximum ({max_employee}) (+0)")
             else:
-                reasons.append(f"Employee count '{employee_count}' exceeds target range (+0)")
+                reasons.append(f"Employee count {count} below minium ({min_employee}) (+0)")
         except ValueError:
             reasons.append("Employee count unknown (+0)")
     else:
