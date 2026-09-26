@@ -1,25 +1,31 @@
-from database import init_db, add_lead, get_all_leads, load_sample_leads, flatten_lead
-from qualification import qualify_lead
+import time
+from database import get_approved_outreach, mark_outreach_sent, get_pending_outreach, get_outreach_draft
+from email_sender import send_email
+
+def send_approved_emails():
+    approved = get_approved_outreach()
+
+    if not approved:
+        print("No approved emails to sent")
+        return
+
+    for item in approved:
+        print(f"Sending to {item['contact_name']} at {item['company_name']} ({item['contact_email']})...")
+        success = send_email(
+            to_address=item['contact_email'],
+            subject=item['email_subject'],
+            body=item['email_body'])
+        if success:
+            mark_outreach_sent(item['id'])
+            print(f"Send and marked")
+        else:
+            print("Failed - left as 'approved' for retry.")
+        time.sleep(5)
+
 
 
 if __name__ == '__main__':
-    init_db()
-
-    for lead in load_sample_leads():
-        flat_lead = flatten_lead(lead)
-        lead_with_status = qualify_lead(flat_lead, target_keywords=["technology", "software"], max_employee=250, min_employee=50)
-        add_lead(
-            flat_lead.get('company_name'),
-            flat_lead.get('industry'),
-            flat_lead.get('employee_count'),
-            flat_lead.get('website'),
-            flat_lead.get('source'),
-            flat_lead.get('notes'),
-            flat_lead.get('contact_name'),
-            flat_lead.get('contact_role'),
-            flat_lead.get('contact_email'),
-            lead_with_status.get('score'),
-            lead_with_status.get('status')
-        )
-
-    print(get_all_leads())
+    # send_approved_emails()
+    pending = get_outreach_draft()
+    for lead in pending:
+        print(lead, '\n')

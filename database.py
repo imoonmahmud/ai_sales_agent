@@ -119,6 +119,10 @@ def init_outreach_table():
     """)
     conn.commit()
 
+def add_sent_at_column():
+    cursor.execute('ALTER TABLE outreach ADD COLUMN sent_at TEXT')
+    conn.commit()
+
 def save_outreach_draft(lead_id, subject, body):
     cursor.execute(
         """
@@ -207,3 +211,29 @@ def review_pending_outreach():
 
         else:
             print("Invalid choice. Skipping.")
+
+def get_approved_outreach():
+    cursor.execute(
+        """
+        SELECT
+            outreach.id,
+            outreach.email_subject,
+            outreach.email_body,
+            leads.contact_email,
+            leads.contact_name,
+            leads.company_name
+        FROM outreach
+        JOIN leads ON outreach.lead_id = leads.id
+        WHERE outreach.status = 'approved'
+    """)
+    rows = cursor.fetchall()
+    return rows_to_dicts(cursor, rows)
+
+def mark_outreach_sent(outreach_id):
+    cursor.execute(
+        """
+        UPDATE outreach
+        SET status = 'sent', sent_at = ?
+        WHERE id = ?
+    """, (date.today().isoformat(), outreach_id))
+    conn.commit()
