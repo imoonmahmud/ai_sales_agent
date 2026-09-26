@@ -99,6 +99,12 @@ def flatten_lead(record):
         'contact_email': record.get('email')
     }
 
+def row_to_dict(row):
+    keys = [
+        'company_name', 'industry', 'employee_count', 'website', 'source', 'notes', 'contact_name', 'contact_role', 'contact_email', 'score', 'status', 'created_at']
+    
+    return dict(zip(keys, row[1:]))
+
 if __name__ == '__main__':
     leads = load_sample_leads()
     for record in leads:
