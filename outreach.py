@@ -1,6 +1,6 @@
 import unicodedata
 from llm import ask_llm
-from database import get_all_leads, row_to_dict
+from database import get_all_leads
 
 def normalize_text(text):
     return unicodedata.normalize('NFKC', text)
@@ -37,8 +37,14 @@ def generate_outreach_email(lead):
 
         Write the email now. Keep it under 100 words. Sign it as "Alex, Sales Team".
         """
+    
+    email = ask_llm(prompt)
+    first_line = email.splitlines()[0]
+    subject = first_line.split(':', 1)[1].strip()
 
-    return ask_llm(prompt)
+    body = email.split('\n', 1)[1].strip()
+
+    return subject, body
 
 def verify_email_grounding(email_text, lead):
     flags = []
@@ -61,17 +67,3 @@ def verify_email_grounding(email_text, lead):
 
     return flags
 
-
-if __name__ == '__main__':
-    leads = get_all_leads()
-    for lead in leads:
-        lead_dict = row_to_dict(lead)
-
-        mail = generate_outreach_email(lead_dict)
-
-        print(repr(lead_dict['company_name']))
-        print(repr(mail[:100]))
-
-        # flags = verify_email_grounding(mail, lead_dict)
-        # print(mail)
-        # print(f"Flags: {flags}")
