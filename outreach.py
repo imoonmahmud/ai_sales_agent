@@ -1,5 +1,9 @@
+import unicodedata
 from llm import ask_llm
 from database import get_all_leads, row_to_dict
+
+def normalize_text(text):
+    return unicodedata.normalize('NFKC', text)
 
 def generate_outreach_email(lead):
     known_fact = []
@@ -38,7 +42,8 @@ def generate_outreach_email(lead):
 
 def verify_email_grounding(email_text, lead):
     flags = []
-    email_lower = email_text.lower()
+    email_lower = normalize_text(email_text).lower()
+    company_name_normalized = normalize_text(lead['company_name']).lower()
 
     suspicious_terms = [
         'founded by', 'raised', 'series a', 'series b', 'series c',
@@ -51,7 +56,7 @@ def verify_email_grounding(email_text, lead):
 
     if lead['contact_name'].split()[0].lower() not in email_lower:
         flags.append(f"Email doesn't seem to address {lead['contact_name']} by name")
-    if lead['company_name'].lower() not in email_lower:
+    if company_name_normalized not in email_lower:
         flags.append(f"Email doesn't mention the company name '{lead['company_name']}'")
 
     return flags
@@ -59,10 +64,14 @@ def verify_email_grounding(email_text, lead):
 
 if __name__ == '__main__':
     leads = get_all_leads()
-    lead_dict = row_to_dict(leads[0])
+    for lead in leads:
+        lead_dict = row_to_dict(lead)
 
-    mail = generate_outreach_email(lead_dict)
-    print(mail)
+        mail = generate_outreach_email(lead_dict)
 
-    flags = verify_email_grounding(mail, lead_dict)
-    print(flags)
+        print(repr(lead_dict['company_name']))
+        print(repr(mail[:100]))
+
+        # flags = verify_email_grounding(mail, lead_dict)
+        # print(mail)
+        # print(f"Flags: {flags}")
